@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DNS Node Status</title>
+<title>DNS Nodes (Static View)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -20,49 +20,24 @@
         color: #4fd1ff;
     }
 
-    #input-row {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    input {
-        flex: 1;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #1b2433;
-        background: #05070b;
-        color: #d7e9ff;
-        font-size: 1rem;
-    }
-
-    button {
-        padding: 10px 16px;
-        border-radius: 8px;
-        border: none;
-        background: #2f7fff;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.1s;
-    }
-
-    button:hover {
-        background: #4fd1ff;
-    }
-
     ul {
         list-style: none;
         padding: 0;
         margin-top: 20px;
+        max-width: 500px;
     }
 
     li {
         background: #111827;
         border: 1px solid #1b2433;
-        padding: 12px;
+        padding: 14px;
         border-radius: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #4fd1ff;
     }
 
     .status-ok { color: #00e38a; }
@@ -72,90 +47,31 @@
 </head>
 <body>
 
-<h1>DNS Node Status</h1>
+<h1>DNS Nodes (Static Status View)</h1>
 
-<div id="input-row">
-    <input id="domain" type="text" value="canaltownweb.com">
-    <button id="check">Check</button>
-</div>
+<p>This version is fully static. No scripts, no network calls, no external content.</p>
 
-<ul id="nodes"></ul>
+<ul>
+    <li>
+        <div class="label">Google DNS (US)</div>
+        <div class="status-pending">Status: Pending</div>
+    </li>
 
-<script>
-const nodes = [
-    { id: "us", label: "Google DNS (US)" },
-    { id: "eu", label: "Google DNS (EU)" },
-    { id: "asia", label: "Google DNS (Asia)" },
-    { id: "anycast", label: "Google DNS (Anycast)" }
-];
+    <li>
+        <div class="label">Google DNS (EU)</div>
+        <div class="status-pending">Status: Pending</div>
+    </li>
 
-const list = document.getElementById("nodes");
-const btn = document.getElementById("check");
-const domainInput = document.getElementById("domain");
+    <li>
+        <div class="label">Google DNS (Asia)</div>
+        <div class="status-pending">Status: Pending</div>
+    </li>
 
-function renderPending() {
-    list.innerHTML = "";
-    nodes.forEach(n => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-            <strong>${n.label}</strong><br>
-            <span class="status-pending">Pending…</span>
-        `;
-        list.appendChild(li);
-    });
-}
-
-async function checkNode(node, domain) {
-    const url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`;
-
-    try {
-        const res = await fetch(url, { headers: { "accept": "application/dns-json" } });
-        const data = await res.json();
-
-        if (!data.Answer) {
-            return { status: "bad", answer: null };
-        }
-
-        return {
-            status: "ok",
-            answer: data.Answer.map(a => a.data)
-        };
-
-    } catch (e) {
-        return { status: "bad", answer: null };
-    }
-}
-
-async function run() {
-    const domain = domainInput.value.trim();
-    if (!domain) return;
-
-    renderPending();
-
-    const results = await Promise.all(nodes.map(n => checkNode(n, domain)));
-
-    list.innerHTML = "";
-
-    nodes.forEach((n, i) => {
-        const r = results[i];
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <strong>${n.label}</strong><br>
-            ${
-                r.status === "ok"
-                ? `<span class="status-ok">Resolved:</span> ${r.answer.join(", ")}`
-                : `<span class="status-bad">Failed</span>`
-            }
-        `;
-
-        list.appendChild(li);
-    });
-}
-
-btn.addEventListener("click", run);
-run();
-</script>
+    <li>
+        <div class="label">Google DNS (Anycast)</div>
+        <div class="status-pending">Status: Pending</div>
+    </li>
+</ul>
 
 </body>
 </html>
