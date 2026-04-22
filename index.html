@@ -92,17 +92,50 @@
         text-align: left;
     }
 
-    /* RIGHT PANEL */
+    /* RIGHT PANEL — EXPANDED + BRANDED */
     #rightPanel {
         flex: 1;
         position: relative;
         background: #000;
+        display: flex;
+        flex-direction: column;
+        border-left: 2px solid #00ff88;
     }
 
+    /* BRAND HEADER */
+    #brandHeader {
+        height: 60px;
+        background: #0d0d0d;
+        border-bottom: 2px solid #00ff88;
+        display: flex;
+        align-items: center;
+        padding-left: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #00ff88;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        font-family: Arial, sans-serif;
+    }
+
+    /* MAP FRAME */
+    #mapFrame {
+        flex: 1;
+        margin: 20px;
+        border: 2px solid #00ff88;
+        border-radius: 10px;
+        padding: 10px;
+        background: #050505;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0,255,100,0.2);
+    }
+
+    /* CANVAS */
     #mapCanvas {
         width: 100%;
         height: 100%;
         display: block;
+        border-radius: 6px;
     }
 </style>
 </head>
@@ -142,7 +175,15 @@
 
 <!-- RIGHT PANEL -->
 <div id="rightPanel">
-    <canvas id="mapCanvas"></canvas>
+
+    <div id="brandHeader">
+        Canaltown Web Design — DNS Propagation Map
+    </div>
+
+    <div id="mapFrame">
+        <canvas id="mapCanvas"></canvas>
+    </div>
+
 </div>
 
 <script>
