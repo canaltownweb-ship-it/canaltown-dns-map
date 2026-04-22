@@ -10,7 +10,6 @@
         --bg: #05070b;
         --panel: #0b1018;
         --accent: #3ea8ff;
-        --accent-soft: rgba(62,168,255,0.35);
         --good: #00e38a;
         --bad: #ff4b5c;
         --pending: #f6c453;
@@ -20,9 +19,7 @@
         --canaltown-blue: #2f7fff;
     }
 
-    * {
-        box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
         margin: 0;
@@ -38,9 +35,10 @@
     #dns-app {
         width: 100%;
         max-width: 980px;
-        background: radial-gradient(circle at top left, rgba(47,127,255,0.18), transparent 55%),
-                    radial-gradient(circle at bottom right, rgba(0,227,138,0.12), transparent 60%),
-                    var(--panel);
+        background:
+            radial-gradient(circle at top left, rgba(47,127,255,0.18), transparent 55%),
+            radial-gradient(circle at bottom right, rgba(0,227,138,0.12), transparent 60%),
+            var(--panel);
         border-radius: 18px;
         border: 1px solid var(--border-subtle);
         box-shadow: 0 24px 80px rgba(0,0,0,0.65);
@@ -95,9 +93,7 @@
         outline: none;
     }
 
-    #dns-domain::placeholder {
-        color: #4b566b;
-    }
+    #dns-domain::placeholder { color: #4b566b; }
 
     #dns-check-btn {
         padding: 10px 16px;
@@ -110,12 +106,24 @@
         cursor: pointer;
         white-space: nowrap;
         box-shadow: 0 0 18px rgba(47,127,255,0.55);
+        transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, opacity 0.08s ease-out;
+    }
+
+    #dns-check-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 0 22px rgba(79,209,255,0.8);
+    }
+
+    #dns-check-btn:active:not(:disabled) {
+        transform: translateY(1px) scale(0.98);
+        box-shadow: 0 0 10px rgba(47,127,255,0.5);
     }
 
     #dns-check-btn:disabled {
         opacity: 0.6;
         cursor: default;
         box-shadow: none;
+        transform: none;
     }
 
     #dns-meta-row {
@@ -129,4 +137,592 @@
     }
 
     #dns-domain-label {
-        font-weight
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    #dns-record-type {
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(5,7,11,0.9);
+        color: var(--text-soft);
+        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    #dns-record-select {
+        background: transparent;
+        border: none;
+        color: var(--text-main);
+        font-size: 0.78rem;
+        outline: none;
+        cursor: pointer;
+    }
+
+    #dns-legend {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 0.78rem;
+    }
+
+    .legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+    }
+
+    .legend-ok { background: var(--good); box-shadow: 0 0 8px rgba(0,227,138,0.7); }
+    .legend-bad { background: var(--bad); box-shadow: 0 0 8px rgba(255,75,92,0.7); }
+    .legend-pending { background: var(--pending); box-shadow: 0 0 8px rgba(246,196,83,0.7); }
+
+    #dns-main {
+        display: grid;
+        grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.1fr);
+        gap: 14px;
+        align-items: stretch;
+    }
+
+    #dns-map-container {
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        background: radial-gradient(circle at top, #172338 0, #05070b 55%, #020308 100%);
+        border: 1px solid rgba(62,168,255,0.25);
+    }
+
+    #dnsMap {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    #dns-tooltip {
+        position: absolute;
+        pointer-events: none;
+        background: rgba(5,7,11,0.96);
+        border-radius: 10px;
+        border: 1px solid var(--border-subtle);
+        padding: 8px 10px;
+        font-size: 0.78rem;
+        color: var(--text-main);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.7);
+        opacity: 0;
+        transform: translate(-50%, -120%);
+        transition: opacity 0.12s ease-out;
+        max-width: 220px;
+        z-index: 10;
+    }
+
+    #dns-sidebar {
+        border-radius: 14px;
+        background: rgba(5,7,11,0.9);
+        border: 1px solid var(--border-subtle);
+        padding: 10px 10px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    #dns-sidebar-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-soft);
+    }
+
+    #dns-resolver-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 0.8rem;
+        max-height: 260px;
+        overflow-y: auto;
+    }
+
+    .resolver-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 6px 6px;
+        border-radius: 8px;
+        background: rgba(10,14,22,0.9);
+        border: 1px solid rgba(27,36,51,0.9);
+    }
+
+    .resolver-main {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .resolver-name {
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .resolver-meta {
+        color: var(--text-soft);
+    }
+
+    .resolver-status-pill {
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .status-ok {
+        background: rgba(0,227,138,0.12);
+        color: var(--good);
+        border: 1px solid rgba(0,227,138,0.6);
+    }
+
+    .status-bad {
+        background: rgba(255,75,92,0.12);
+        color: var(--bad);
+        border: 1px solid rgba(255,75,92,0.6);
+    }
+
+    .status-pending {
+        background: rgba(246,196,83,0.12);
+        color: var(--pending);
+        border: 1px solid rgba(246,196,83,0.6);
+    }
+
+    #dns-footer {
+        margin-top: 8px;
+        font-size: 0.72rem;
+        color: var(--text-soft);
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+    }
+
+    @media (max-width: 800px) {
+        #dns-main {
+            grid-template-columns: minmax(0, 1fr);
+        }
+        #dns-sidebar {
+            order: -1;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div id="dns-app">
+    <div id="dns-header-row">
+        <div id="dns-brand">
+            <div id="dns-brand-title">Canaltown Digital</div>
+            <div id="dns-brand-main">Global DNS Propagation Map</div>
+        </div>
+        <div id="dns-input-wrap">
+            <input id="dns-domain" type="text" placeholder="Enter a domain (e.g. canaltownweb.com)" value="canaltownweb.com">
+            <button id="dns-check-btn">Check DNS</button>
+        </div>
+    </div>
+
+    <div id="dns-meta-row">
+        <div>
+            <span id="dns-domain-label">canaltownweb.com</span>
+            <span style="margin-left:8px;color:var(--text-soft);font-size:0.78rem;">Live propagation snapshot</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div id="dns-record-type">
+                <span>Record</span>
+                <select id="dns-record-select">
+                    <option value="A" selected>A</option>
+                    <option value="AAAA">AAAA</option>
+                    <option value="CNAME">CNAME</option>
+                    <option value="MX">MX</option>
+                    <option value="TXT">TXT</option>
+                </select>
+            </div>
+            <div id="dns-legend">
+                <span class="legend-dot legend-ok"></span><span>Resolved</span>
+                <span class="legend-dot legend-pending"></span><span>Pending</span>
+                <span class="legend-dot legend-bad"></span><span>Failed</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="dns-main">
+        <div id="dns-map-container">
+            <canvas id="dnsMap"></canvas>
+            <div id="dns-tooltip"></div>
+        </div>
+        <aside id="dns-sidebar">
+            <div id="dns-sidebar-title">Resolvers</div>
+            <ul id="dns-resolver-list"></ul>
+        </aside>
+    </div>
+
+    <div id="dns-footer">
+        <span>Live checks via Google Public DNS (Anycast global network).</span>
+        <span>Designed for Canaltown Web · Fairport, NY</span>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById("dnsMap");
+const ctx = canvas.getContext("2d");
+const tooltip = document.getElementById("dns-tooltip");
+const domainInput = document.getElementById("dns-domain");
+const checkBtn = document.getElementById("dns-check-btn");
+const recordSelect = document.getElementById("dns-record-select");
+const domainLabel = document.getElementById("dns-domain-label");
+const resolverListEl = document.getElementById("dns-resolver-list");
+
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+let currentDomain = domainInput.value.trim() || "canaltownweb.com";
+let currentRecordType = "A";
+
+const resolvers = [
+    {
+        id: "google-us",
+        label: "Google DNS (US)",
+        region: "North America",
+        doh: "https://dns.google/resolve",
+        x: 0.30, y: 0.35
+    },
+    {
+        id: "google-eu",
+        label: "Google DNS (EU)",
+        region: "Europe",
+        doh: "https://dns.google/resolve",
+        x: 0.52, y: 0.29
+    },
+    {
+        id: "google-asia",
+        label: "Google DNS (Asia)",
+        region: "Asia-Pacific",
+        doh: "https://dns.google/resolve",
+        x: 0.78, y: 0.40
+    },
+    {
+        id: "google-anycast",
+        label: "Google DNS (Anycast)",
+        region: "Global",
+        doh: "https://dns.google/resolve",
+        x: 0.46, y: 0.55
+    }
+];
+
+resolvers.forEach(r => {
+    r.status = "pending";
+    r.answer = null;
+    r.rtt = null;
+});
+
+function renderResolverList() {
+    resolverListEl.innerHTML = "";
+    resolvers.forEach(r => {
+        const li = document.createElement("li");
+        li.className = "resolver-item";
+
+        const main = document.createElement("div");
+        main.className = "resolver-main";
+
+        const name = document.createElement("div");
+        name.className = "resolver-name";
+        name.textContent = r.label;
+
+        const meta = document.createElement("div");
+        meta.className = "resolver-meta";
+        meta.textContent = r.region;
+
+        const answer = document.createElement("div");
+        answer.className = "resolver-meta";
+
+        if (r.status === "ok" && r.answer) {
+            answer.textContent = Array.isArray(r.answer) ? r.answer.join(", ") : r.answer;
+        } else if (r.status === "pending") {
+            answer.textContent = "Waiting…";
+        } else {
+            answer.textContent = "No answer";
+        }
+
+        main.appendChild(name);
+        main.appendChild(meta);
+        main.appendChild(answer);
+
+        const pill = document.createElement("div");
+        pill.className = "resolver-status-pill";
+
+        if (r.status === "ok") {
+            pill.classList.add("status-ok");
+            pill.textContent = "Resolved";
+        } else if (r.status === "bad") {
+            pill.classList.add("status-bad");
+            pill.textContent = "Failed";
+        } else {
+            pill.classList.add("status-pending");
+            pill.textContent = "Pending";
+        }
+
+        li.appendChild(main);
+        li.appendChild(pill);
+        resolverListEl.appendChild(li);
+    });
+}
+
+async function checkResolver(resolver, domain, type) {
+    resolver.status = "pending";
+    resolver.answer = null;
+    resolver.rtt = null;
+
+    const start = performance.now();
+
+    try {
+        const url = `${resolver.doh}?name=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`;
+        const res = await fetch(url, { headers: { "accept": "application/dns-json" } });
+
+        const elapsed = performance.now() - start;
+
+        if (!res.ok) {
+            resolver.status = "bad";
+            resolver.rtt = Math.round(elapsed);
+            return;
+        }
+
+        const data = await res.json();
+        const answers = data.Answer || [];
+
+        if (!answers.length) {
+            resolver.status = "bad";
+            resolver.rtt = Math.round(elapsed);
+            return;
+        }
+
+        const values = answers.map(a => a.data).filter(Boolean);
+
+        resolver.answer = values;
+        resolver.status = "ok";
+        resolver.rtt = Math.round(elapsed);
+
+    } catch (err) {
+        resolver.status = "bad";
+        resolver.rtt = null;
+    }
+}
+
+async function runChecks() {
+    const domain = currentDomain;
+    const type = currentRecordType;
+
+    checkBtn.disabled = true;
+    checkBtn.textContent = "Checking…";
+
+    await Promise.all(resolvers.map(r => checkResolver(r, domain, type)));
+
+    renderResolverList();
+    checkBtn.disabled = false;
+    checkBtn.textContent = "Check DNS";
+}
+
+function drawWorldMapBackground() {
+    const w = canvas.width / window.devicePixelRatio;
+    const h = canvas.height / window.devicePixelRatio;
+
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, "#0b1220");
+    grad.addColorStop(0.5, "#05070b");
+    grad.addColorStop(1, "#020308");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.strokeStyle = "rgba(62,168,255,0.18)";
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+    ctx.moveTo(w*0.12, h*0.30);
+    ctx.bezierCurveTo(w*0.25, h*0.18, w*0.40, h*0.20, w*0.48, h*0.32);
+    ctx.bezierCurveTo(w*0.42, h*0.40, w*0.30, h*0.42, w*0.18, h*0.38);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(w*0.55, h*0.28);
+    ctx.bezierCurveTo(w*0.68, h*0.22, w*0.82, h*0.26, w*0.88, h*0.36);
+    ctx.bezierCurveTo(w*0.80, h*0.44, w*0.66, h*0.46, w*0.56, h*0.38);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(w*0.30, h*0.60);
+    ctx.bezierCurveTo(w*0.40, h*0.55, w*0.55, h*0.58, w*0.62, h*0.66);
+    ctx.bezierCurveTo(w*0.52, h*0.72, w*0.38, h*0.72, w*0.30, h*0.66);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+function drawMap() {
+    const w = canvas.width / window.devicePixelRatio;
+    const h = canvas.height / window.devicePixelRatio;
+
+    ctx.clearRect(0, 0, w, h);
+    drawWorldMapBackground();
+
+    const cx = w * 0.50;
+    const cy = h * 0.45;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+    const centerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 40);
+    centerGrad.addColorStop(0, "rgba(62,168,255,0.9)");
+    centerGrad.addColorStop(1, "rgba(62,168,255,0)");
+    ctx.fillStyle = centerGrad;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+
+    resolvers.forEach(r => {
+        const px = r.x * w;
+        const py = r.y * h;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(px, py);
+        if (r.status === "ok") {
+            ctx.strokeStyle = "rgba(0,227,138,0.55)";
+        } else if (r.status === "bad") {
+            ctx.strokeStyle = "rgba(255,75,92,0.55)";
+        } else {
+            ctx.strokeStyle = "rgba(246,196,83,0.45)";
+        }
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(px, py, 8, 0, Math.PI * 2);
+        if (r.status === "ok") {
+            ctx.fillStyle = "rgba(0,227,138,1)";
+            ctx.shadowColor = "rgba(0,227,138,0.9)";
+        } else if (r.status === "bad") {
+            ctx.fillStyle = "rgba(255,75,92,1)";
+            ctx.shadowColor = "rgba(255,75,92,0.9)";
+        } else {
+            ctx.fillStyle = "rgba(246,196,83,1)";
+            ctx.shadowColor = "rgba(246,196,83,0.9)";
+        }
+        ctx.shadowBlur = 16;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.font = "10px system-ui";
+        ctx.fillStyle = "rgba(215,233,255,0.9)";
+        ctx.textAlign = "center";
+        ctx.fillText(r.label, px, py - 14);
+    });
+
+    requestAnimationFrame(drawMap);
+}
+drawMap();
+
+canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const w = canvas.width / window.devicePixelRatio;
+    const h = canvas.height / window.devicePixelRatio;
+
+    const mx = (e.clientX - rect.left);
+    const my = (e.clientY - rect.top);
+
+    let hovered = null;
+    resolvers.forEach(r => {
+        const px = r.x * w;
+        const py = r.y * h;
+        const dx = mx - px;
+        const dy = my - py;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < 12) hovered = r;
+    });
+
+    if (!hovered) {
+        tooltip.style.opacity = 0;
+        return;
+    }
+
+    let statusLabel = hovered.status === "ok" ? "Resolved" :
+                      hovered.status === "bad" ? "Failed" : "Pending";
+
+    let answerText = "";
+    if (hovered.status === "ok" && hovered.answer) {
+        answerText = Array.isArray(hovered.answer) ? hovered.answer.join(", ") : hovered.answer;
+    } else if (hovered.status === "pending") {
+        answerText = "Waiting…";
+    } else {
+        answerText = "No answer";
+    }
+
+    tooltip.innerHTML = `
+        <strong>${hovered.label}</strong><br>
+        <span style="color:var(--text-soft);">Region:</span> ${hovered.region}<br>
+        <span style="color:var(--text-soft);">Status:</span> ${statusLabel}<br>
+        <span style="color:var(--text-soft);">Record:</span> ${currentRecordType}<br>
+        <span style="color:var(--text-soft);">Answer:</span> ${answerText || "—"}<br>
+        <span style="color:var(--text-soft);">RTT:</span> ${hovered.rtt != null ? hovered.rtt + " ms" : "—"}
+    `;
+
+    tooltip.style.left = (e.clientX - rect.left) + "px";
+    tooltip.style.top = (e.clientY - rect.top) + "px";
+    tooltip.style.opacity = 1;
+});
+
+canvas.addEventListener("mouseleave", () => {
+    tooltip.style.opacity = 0;
+});
+
+checkBtn.addEventListener("click", () => {
+    const val = domainInput.value.trim();
+    if (!val) return;
+
+    currentDomain = val;
+    domainLabel.textContent = val;
+
+    resolvers.forEach(r => {
+        r.status = "pending";
+        r.answer = null;
+        r.rtt = null;
+    });
+
+    renderResolverList();
+    runChecks();
+});
+
+recordSelect.addEventListener("change", () => {
+    currentRecordType = recordSelect.value;
+
+    resolvers.forEach(r => {
+        r.status = "pending";
+        r.answer = null;
+        r.rtt = null;
+    });
+
+    renderResolverList();
+    runChecks();
+});
+
+renderResolverList();
+runChecks();
+</script>
+
+</body>
+</html>
