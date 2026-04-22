@@ -2,370 +2,160 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Canaltown Digital DNS Propagation Map</title>
+<title>DNS Node Status</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-    :root {
-        --bg: #05070b;
-        --panel: #0b1018;
-        --accent: #3ea8ff;
-        --good: #00e38a;
-        --bad: #ff4b5c;
-        --pending: #f6c453;
-        --text-main: #d7e9ff;
-        --text-soft: #7b8aa5;
-        --border-subtle: #1b2433;
-        --canaltown-blue: #2f7fff;
-    }
-
-    * { box-sizing: border-box; }
-
     body {
+        background: #0b0f17;
+        color: #d7e9ff;
+        font-family: system-ui, sans-serif;
         margin: 0;
-        min-height: 100vh;
-        background: radial-gradient(circle at top, #10182a 0, #05070b 55%, #020308 100%);
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
-        color: var(--text-main);
-        display: flex;
-        justify-content: center;
-        padding: 32px 16px;
+        padding: 30px;
     }
 
-    #dns-app {
-        width: 100%;
-        max-width: 980px;
-        background:
-            radial-gradient(circle at top left, rgba(47,127,255,0.18), transparent 55%),
-            radial-gradient(circle at bottom right, rgba(0,227,138,0.12), transparent 60%),
-            var(--panel);
-        border-radius: 18px;
-        border: 1px solid var(--border-subtle);
-        box-shadow: 0 24px 80px rgba(0,0,0,0.65);
-        padding: 20px 20px 18px;
-        position: relative;
-        overflow: hidden;
+    h1 {
+        margin-top: 0;
+        font-size: 1.4rem;
+        color: #4fd1ff;
     }
 
-    #dns-header-row {
+    #input-row {
         display: flex;
-        flex-wrap: wrap;
         gap: 10px;
-        align-items: center;
-        margin-bottom: 14px;
+        margin-bottom: 20px;
     }
 
-    #dns-brand {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 180px;
-    }
-
-    #dns-brand-title {
-        font-size: 0.9rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--text-soft);
-    }
-
-    #dns-brand-main {
-        font-size: 1.05rem;
-        font-weight: 600;
-        color: var(--canaltown-blue);
-    }
-
-    #dns-input-wrap {
+    input {
         flex: 1;
-        display: flex;
-        gap: 8px;
-        min-width: 220px;
-    }
-
-    #dns-domain {
-        flex: 1;
-        padding: 10px 12px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #1b2433;
         background: #05070b;
-        border-radius: 10px;
-        border: 1px solid var(--border-subtle);
-        color: var(--text-main);
-        font-size: 0.95rem;
-        outline: none;
+        color: #d7e9ff;
+        font-size: 1rem;
     }
 
-    #dns-domain::placeholder { color: #4b566b; }
-
-    #dns-check-btn {
+    button {
         padding: 10px 16px;
-        border-radius: 10px;
+        border-radius: 8px;
         border: none;
-        background: linear-gradient(135deg, var(--canaltown-blue), #4fd1ff);
+        background: #2f7fff;
         color: white;
         font-weight: 600;
-        font-size: 0.9rem;
         cursor: pointer;
-        white-space: nowrap;
-        box-shadow: 0 0 18px rgba(47,127,255,0.55);
-        transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, opacity 0.08s ease-out;
+        transition: 0.1s;
     }
 
-    #dns-check-btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        box-shadow: 0 0 22px rgba(79,209,255,0.8);
+    button:hover {
+        background: #4fd1ff;
     }
 
-    #dns-check-btn:active:not(:disabled) {
-        transform: translateY(1px) scale(0.98);
-        box-shadow: 0 0 10px rgba(47,127,255,0.5);
-    }
-
-    #dns-check-btn:disabled {
-        opacity: 0.6;
-        cursor: default;
-        box-shadow: none;
-        transform: none;
-    }
-
-    #dns-meta-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 10px;
-        font-size: 0.8rem;
-        color: var(--text-soft);
-    }
-
-    #dns-domain-label {
-        font-weight: 500;
-        color: var(--text-main);
-    }
-
-    #dns-record-type {
-        padding: 4px 8px;
-        border-radius: 999px;
-        border: 1px solid var(--border-subtle);
-        background: rgba(5,7,11,0.9);
-        color: var(--text-soft);
-        font-size: 0.78rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    #dns-record-select {
-        background: transparent;
-        border: none;
-        color: var(--text-main);
-        font-size: 0.78rem;
-        outline: none;
-        cursor: pointer;
-    }
-
-    #dns-legend {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        font-size: 0.78rem;
-    }
-
-    .legend-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-    }
-
-    .legend-ok { background: var(--good); box-shadow: 0 0 8px rgba(0,227,138,0.7); }
-    .legend-bad { background: var(--bad); box-shadow: 0 0 8px rgba(255,75,92,0.7); }
-    .legend-pending { background: var(--pending); box-shadow: 0 0 8px rgba(246,196,83,0.7); }
-
-    #dns-main {
-        display: grid;
-        grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.1fr);
-        gap: 14px;
-        align-items: stretch;
-    }
-
-    #dns-map-container {
-        position: relative;
-        border-radius: 14px;
-        overflow: hidden;
-        background: radial-gradient(circle at top, #172338 0, #05070b 55%, #020308 100%);
-        border: 1px solid rgba(62,168,255,0.25);
-    }
-
-    #dnsMap {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
-
-    #dns-tooltip {
-        position: absolute;
-        pointer-events: none;
-        background: rgba(5,7,11,0.96);
-        border-radius: 10px;
-        border: 1px solid var(--border-subtle);
-        padding: 8px 10px;
-        font-size: 0.78rem;
-        color: var(--text-main);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.7);
-        opacity: 0;
-        transform: translate(-50%, -120%);
-        transition: opacity 0.12s ease-out;
-        max-width: 220px;
-        z-index: 10;
-    }
-
-    #dns-sidebar {
-        border-radius: 14px;
-        background: rgba(5,7,11,0.9);
-        border: 1px solid var(--border-subtle);
-        padding: 10px 10px 8px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    #dns-sidebar-title {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--text-soft);
-    }
-
-    #dns-resolver-list {
+    ul {
         list-style: none;
-        margin: 0;
         padding: 0;
-        font-size: 0.8rem;
-        max-height: 260px;
-        overflow-y: auto;
+        margin-top: 20px;
     }
 
-    .resolver-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 6px;
-        padding: 6px 6px;
+    li {
+        background: #111827;
+        border: 1px solid #1b2433;
+        padding: 12px;
         border-radius: 8px;
-        background: rgba(10,14,22,0.9);
-        border: 1px solid rgba(27,36,51,0.9);
+        margin-bottom: 10px;
     }
 
-    .resolver-main {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .resolver-name {
-        font-weight: 500;
-        color: var(--text-main);
-    }
-
-    .resolver-meta {
-        color: var(--text-soft);
-    }
-
-    .resolver-status-pill {
-        padding: 2px 8px;
-        border-radius: 999px;
-        font-size: 0.72rem;
-        font-weight: 500;
-        white-space: nowrap;
-    }
-
-    .status-ok {
-        background: rgba(0,227,138,0.12);
-        color: var(--good);
-        border: 1px solid rgba(0,227,138,0.6);
-    }
-
-    .status-bad {
-        background: rgba(255,75,92,0.12);
-        color: var(--bad);
-        border: 1px solid rgba(255,75,92,0.6);
-    }
-
-    .status-pending {
-        background: rgba(246,196,83,0.12);
-        color: var(--pending);
-        border: 1px solid rgba(246,196,83,0.6);
-    }
-
-    #dns-footer {
-        margin-top: 8px;
-        font-size: 0.72rem;
-        color: var(--text-soft);
-        display: flex;
-        justify-content: space-between;
-        gap: 8px;
-        align-items: center;
-    }
-
-    @media (max-width: 800px) {
-        #dns-main {
-            grid-template-columns: minmax(0, 1fr);
-        }
-        #dns-sidebar {
-            order: -1;
-        }
-    }
+    .status-ok { color: #00e38a; }
+    .status-bad { color: #ff4b5c; }
+    .status-pending { color: #f6c453; }
 </style>
 </head>
 <body>
 
-<div id="dns-app">
-    <div id="dns-header-row">
-        <div id="dns-brand">
-            <div id="dns-brand-title">Canaltown Digital</div>
-            <div id="dns-brand-main">Global DNS Propagation Map</div>
-        </div>
-        <div id="dns-input-wrap">
-            <input id="dns-domain" type="text" placeholder="Enter a domain (e.g. canaltownweb.com)" value="canaltownweb.com">
-            <button id="dns-check-btn">Check DNS</button>
-        </div>
-    </div>
+<h1>DNS Node Status</h1>
 
-    <div id="dns-meta-row">
-        <div>
-            <span id="dns-domain-label">canaltownweb.com</span>
-            <span style="margin-left:8px;color:var(--text-soft);font-size:0.78rem;">Live propagation snapshot</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-            <div id="dns-record-type">
-                <span>Record</span>
-                <select id="dns-record-select">
-                    <option value="A" selected>A</option>
-                    <option value="AAAA">AAAA</option>
-                    <option value="CNAME">CNAME</option>
-                    <option value="MX">MX</option>
-                    <option value="TXT">TXT</option>
-                </select>
-            </div>
-            <div id="dns-legend">
-                <span class="legend-dot legend-ok"></span><span>Resolved</span>
-                <span class="legend-dot legend-pending"></span><span>Pending</span>
-                <span class="legend-dot legend-bad"></span><span>Failed</span>
-            </div>
-        </div>
-    </div>
-
-    <div id="dns-main">
-        <div id="dns-map-container">
-            <canvas id="dnsMap"></canvas>
-            <div id="dns-tooltip"></div>
-        </div>
-        <aside id="dns-sidebar">
-            <div id="dns-sidebar-title">Resolvers</div>
-            <ul id="dns-resolver-list"></ul>
-        </aside>
-    </div>
-
-    <div id="dns-footer">
-        <span>Live checks via Google Public DNS (Anycast global network).</span>
-        <span>Designed for Canaltown Web · Fairport, NY</span>
-    </div>
+<div id="input-row">
+    <input id="domain" type="text" value="canaltownweb.com">
+    <button id="check">Check</button>
 </div>
+
+<ul id="nodes"></ul>
+
+<script>
+const nodes = [
+    { id: "us", label: "Google DNS (US)" },
+    { id: "eu", label: "Google DNS (EU)" },
+    { id: "asia", label: "Google DNS (Asia)" },
+    { id: "anycast", label: "Google DNS (Anycast)" }
+];
+
+const list = document.getElementById("nodes");
+const btn = document.getElementById("check");
+const domainInput = document.getElementById("domain");
+
+function renderPending() {
+    list.innerHTML = "";
+    nodes.forEach(n => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <strong>${n.label}</strong><br>
+            <span class="status-pending">Pending…</span>
+        `;
+        list.appendChild(li);
+    });
+}
+
+async function checkNode(node, domain) {
+    const url = `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`;
+
+    try {
+        const res = await fetch(url, { headers: { "accept": "application/dns-json" } });
+        const data = await res.json();
+
+        if (!data.Answer) {
+            return { status: "bad", answer: null };
+        }
+
+        return {
+            status: "ok",
+            answer: data.Answer.map(a => a.data)
+        };
+
+    } catch (e) {
+        return { status: "bad", answer: null };
+    }
+}
+
+async function run() {
+    const domain = domainInput.value.trim();
+    if (!domain) return;
+
+    renderPending();
+
+    const results = await Promise.all(nodes.map(n => checkNode(n, domain)));
+
+    list.innerHTML = "";
+
+    nodes.forEach((n, i) => {
+        const r = results[i];
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+            <strong>${n.label}</strong><br>
+            ${
+                r.status === "ok"
+                ? `<span class="status-ok">Resolved:</span> ${r.answer.join(", ")}`
+                : `<span class="status-bad">Failed</span>`
+            }
+        `;
+
+        list.appendChild(li);
+    });
+}
+
+btn.addEventListener("click", run);
+run();
+</script>
+
+</body>
+</html>
