@@ -1,77 +1,1215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>DNS Nodes (Static View)</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Global DNS Propagation Map – Canaltown</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #050814;
+      --bg-alt: #0b1022;
+      --accent: #4fd1c5;
+      --accent-soft: rgba(79, 209, 197, 0.2);
+      --accent-strong: #63f3e4;
+      --danger: #f56565;
+      --text: #e2e8f0;
+      --muted: #718096;
+      --border: #1a202c;
+      --card: #0f172a;
+      --good: #48bb78;
+      --warn: #ecc94b;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-<style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-        background: #0b0f17;
-        color: #d7e9ff;
-        font-family: system-ui, sans-serif;
-        margin: 0;
-        padding: 30px;
+      font-family: var(--font);
+      background: radial-gradient(circle at top, #1a365d 0, #050814 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 1.5rem;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 1400px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+      }
+    }
+
+    .panel {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+      border-radius: 1rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      backdrop-filter: blur(16px);
+    }
+
+    .panel-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(99, 179, 237, 0.4);
+      color: #bee3f8;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 55%);
+    }
+
+    .badge-secondary {
+      border-color: rgba(129, 230, 217, 0.4);
+      color: #b2f5ea;
+      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.2), transparent 55%);
     }
 
     h1 {
-        margin-top: 0;
-        font-size: 1.4rem;
-        color: #4fd1ff;
+      font-size: 1.4rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    ul {
-        list-style: none;
-        padding: 0;
-        margin-top: 20px;
-        max-width: 500px;
+    h1 span.logo-dot {
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, var(--accent-strong), var(--accent));
+      box-shadow: 0 0 12px rgba(99, 255, 234, 0.8);
     }
 
-    li {
-        background: #111827;
-        border: 1px solid #1b2433;
-        padding: 14px;
-        border-radius: 8px;
-        margin-bottom: 12px;
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 26rem;
     }
 
-    .label {
-        font-weight: 600;
-        color: #4fd1ff;
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.25rem;
     }
 
-    .status-ok { color: #00e38a; }
-    .status-bad { color: #ff4b5c; }
-    .status-pending { color: #f6c453; }
-</style>
+    .metric-card {
+      background: radial-gradient(circle at top, rgba(15, 118, 110, 0.35), rgba(15, 23, 42, 0.9));
+      border-radius: 0.75rem;
+      padding: 0.6rem 0.7rem;
+      border: 1px solid rgba(45, 212, 191, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #a0aec0;
+    }
+
+    .metric-value {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .metric-sub {
+      font-size: 0.7rem;
+      color: #9f7aea;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(79, 209, 197, 0.7);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.3), rgba(15, 23, 42, 0.95));
+      color: var(--text);
+      padding: 0.45rem 0.9rem;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2), 0 10px 25px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.4), 0 14px 30px rgba(15, 23, 42, 0.95);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.45), rgba(15, 23, 42, 0.98));
+    }
+
+    .btn-secondary {
+      border-color: rgba(148, 163, 184, 0.7);
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.25), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.2), 0 10px 25px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-secondary:hover {
+      box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.4), 0 14px 30px rgba(15, 23, 42, 0.95);
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.35), rgba(15, 23, 42, 0.98));
+    }
+
+    .btn-icon {
+      width: 0.8rem;
+      height: 0.8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.6rem;
+      color: #cbd5f5;
+    }
+
+    .legend {
+      margin-top: 0.5rem;
+      padding: 0.55rem 0.7rem;
+      border-radius: 0.75rem;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at top left, rgba(30, 64, 175, 0.35), rgba(15, 23, 42, 0.95));
+      font-size: 0.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: #cbd5f5;
+    }
+
+    .legend-dot {
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 999px;
+    }
+
+    .legend-dot.up {
+      background: radial-gradient(circle at 30% 30%, #68d391, #2f855a);
+      box-shadow: 0 0 8px rgba(72, 187, 120, 0.9);
+    }
+
+    .legend-dot.slow {
+      background: radial-gradient(circle at 30% 30%, #ecc94b, #b7791f);
+      box-shadow: 0 0 8px rgba(236, 201, 75, 0.9);
+    }
+
+    .legend-dot.down {
+      background: radial-gradient(circle at 30% 30%, #fc8181, #c53030);
+      box-shadow: 0 0 8px rgba(252, 129, 129, 0.9);
+    }
+
+    .legend-line {
+      width: 1.4rem;
+      height: 0.12rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.9));
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    }
+
+    .legend-label {
+      color: #a0aec0;
+    }
+
+    .table-wrapper {
+      margin-top: 0.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(30, 64, 175, 0.7);
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.96));
+      overflow: hidden;
+      max-height: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .table-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #a0aec0;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.7);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-header span {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    .table-scroll {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(10px);
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94a3b8;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.7);
+      cursor: pointer;
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    tr:nth-child(odd) td {
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    tr:hover td {
+      background: rgba(30, 64, 175, 0.65);
+    }
+
+    .status-pill {
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .status-pill span.dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 999px;
+    }
+
+    .status-up {
+      background: rgba(56, 161, 105, 0.18);
+      color: #c6f6d5;
+      border: 1px solid rgba(72, 187, 120, 0.7);
+    }
+
+    .status-up span.dot {
+      background: #68d391;
+      box-shadow: 0 0 6px rgba(72, 187, 120, 0.9);
+    }
+
+    .status-slow {
+      background: rgba(214, 158, 46, 0.18);
+      color: #fefcbf;
+      border: 1px solid rgba(236, 201, 75, 0.7);
+    }
+
+    .status-slow span.dot {
+      background: #ecc94b;
+      box-shadow: 0 0 6px rgba(236, 201, 75, 0.9);
+    }
+
+    .status-down {
+      background: rgba(229, 62, 62, 0.18);
+      color: #fed7d7;
+      border: 1px solid rgba(245, 101, 101, 0.7);
+    }
+
+    .status-down span.dot {
+      background: #fc8181;
+      box-shadow: 0 0 6px rgba(252, 129, 129, 0.9);
+    }
+
+    .map-panel {
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .map-header {
+      padding: 0.9rem 1rem 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .map-title {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .map-title-main {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #e2e8f0;
+    }
+
+    .map-title-sub {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .map-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .map-meta-item {
+      font-size: 0.7rem;
+      color: #a0aec0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .map-meta-dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #63f3e4, #0f766e);
+      box-shadow: 0 0 8px rgba(45, 212, 191, 0.9);
+    }
+
+    .map-container {
+      position: relative;
+      padding: 0.5rem 1rem 1rem;
+      height: min(70vh, 640px);
+    }
+
+    #mapCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 0.9rem;
+      background: radial-gradient(circle at top, #020617, #020617 40%, #020617 60%, #020617 100%);
+      display: block;
+      border: 1px solid rgba(30, 64, 175, 0.9);
+      box-shadow:
+        0 0 0 1px rgba(15, 23, 42, 0.9),
+        0 0 40px rgba(30, 64, 175, 0.7),
+        inset 0 0 40px rgba(15, 23, 42, 0.9);
+    }
+
+    .map-overlay {
+      position: absolute;
+      inset: 0.5rem 1rem 1rem;
+      pointer-events: none;
+      border-radius: 0.9rem;
+      overflow: hidden;
+    }
+
+    .map-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at center, rgba(56, 189, 248, 0.12), transparent 55%),
+        linear-gradient(rgba(30, 64, 175, 0.35) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 64, 175, 0.35) 1px, transparent 1px);
+      background-size: 100% 100%, 80px 80px, 80px 80px;
+      mix-blend-mode: screen;
+      opacity: 0.4;
+    }
+
+    .map-glow {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.25), transparent 55%),
+        radial-gradient(circle at 80% 70%, rgba(45, 212, 191, 0.25), transparent 55%);
+      mix-blend-mode: screen;
+      opacity: 0.7;
+    }
+
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.98);
+      border-radius: 0.6rem;
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      padding: 0.45rem 0.6rem;
+      font-size: 0.75rem;
+      color: #e2e8f0;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.95);
+      min-width: 180px;
+      max-width: 240px;
+      z-index: 10;
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      transition: opacity 0.08s ease;
+    }
+
+    .tooltip.visible {
+      opacity: 1;
+    }
+
+    .tooltip-title {
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+    }
+
+    .tooltip-provider {
+      font-size: 0.7rem;
+      color: #a5b4fc;
+      margin-bottom: 0.15rem;
+    }
+
+    .tooltip-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: #cbd5f5;
+    }
+
+    .tooltip-row span.label {
+      color: #94a3b8;
+    }
+
+    .tooltip-status {
+      margin-top: 0.25rem;
+      font-size: 0.7rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .tooltip-status-dot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 999px;
+    }
+
+    .footer-note {
+      margin-top: 0.4rem;
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    .footer-note span {
+      color: #a5b4fc;
+    }
+  </style>
 </head>
 <body>
+  <div class="app">
+    <!-- LEFT PANEL: Controls + Table -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="badge-row">
+          <div class="badge">A2 · Canaltown</div>
+          <div class="badge badge-secondary">Global DNS propagation</div>
+        </div>
+        <h1>
+          <span class="logo-dot"></span>
+          Animated DNS Map
+        </h1>
+        <p class="subtitle">
+          Visualize how fast major public resolvers around the world converge on your latest DNS change.
+        </p>
+      </div>
 
-<h1>DNS Nodes (Static Status View)</h1>
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-label">Resolvers</div>
+          <div class="metric-value" id="metricResolvers">0</div>
+          <div class="metric-sub">Global vantage points</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Median latency</div>
+          <div class="metric-value" id="metricMedian">–</div>
+          <div class="metric-sub">ms (simulated)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Propagation</div>
+          <div class="metric-value" id="metricPropagation">Idle</div>
+          <div class="metric-sub">Last run status</div>
+        </div>
+      </div>
 
-<p>This version is fully static. No scripts, no network calls, no external content.</p>
+      <div class="controls">
+        <button class="btn" id="btnRun">
+          <span class="btn-icon">▶</span>
+          Run propagation check
+        </button>
+        <button class="btn btn-secondary" id="btnPulse">
+          <span class="btn-icon">✦</span>
+          Ambient pulses
+        </button>
+        <button class="btn btn-secondary" id="btnReset">
+          <span class="btn-icon">↺</span>
+          Reset view
+        </button>
+      </div>
 
-<ul>
-    <li>
-        <div class="label">Google DNS (US)</div>
-        <div class="status-pending">Status: Pending</div>
-    </li>
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-dot up"></span>
+          <span class="legend-label">Fast (< 120 ms)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot slow"></span>
+          <span class="legend-label">Slow (120–300 ms)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot down"></span>
+          <span class="legend-label">Stale / timeout</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-line"></span>
+          <span class="legend-label">Propagation path</span>
+        </div>
+      </div>
 
-    <li>
-        <div class="label">Google DNS (EU)</div>
-        <div class="status-pending">Status: Pending</div>
-    </li>
+      <div class="table-wrapper">
+        <div class="table-header">
+          <div>Resolver health</div>
+          <span id="tableSummary">No checks run yet</span>
+        </div>
+        <div class="table-scroll">
+          <table id="resolverTable">
+            <thead>
+              <tr>
+                <th data-sort="name">Resolver</th>
+                <th data-sort="provider">Provider</th>
+                <th data-sort="region">Region</th>
+                <th data-sort="latency">Latency</th>
+                <th data-sort="status">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-    <li>
-        <div class="label">Google DNS (Asia)</div>
-        <div class="status-pending">Status: Pending</div>
-    </li>
+      <div class="footer-note">
+        Synthetic latencies are generated client‑side for visualization only.
+        <span>No real DNS queries are executed in this demo.</span>
+      </div>
+    </section>
 
-    <li>
-        <div class="label">Google DNS (Anycast)</div>
-        <div class="status-pending">Status: Pending</div>
-    </li>
-</ul>
+    <!-- RIGHT PANEL: Map -->
+    <section class="panel map-panel">
+      <div class="map-header">
+        <div class="map-title">
+          <div class="map-title-main">Global propagation canvas</div>
+          <div class="map-title-sub">
+            Each pulse represents a resolver converging on your latest DNS answer.
+          </div>
+        </div>
+        <div class="map-meta">
+          <div class="map-meta-item">
+            <span class="map-meta-dot"></span>
+            Live topology
+          </div>
+          <div class="map-meta-item">
+            <span id="metaLastRun">Last run: –</span>
+          </div>
+        </div>
+      </div>
+      <div class="map-container">
+        <canvas id="mapCanvas"></canvas>
+        <div class="map-overlay">
+          <div class="map-grid"></div>
+          <div class="map-glow"></div>
+        </div>
+        <div class="tooltip" id="tooltip">
+          <div class="tooltip-title" id="tooltipName"></div>
+          <div class="tooltip-provider" id="tooltipProvider"></div>
+          <div class="tooltip-row">
+            <span class="label">Region</span>
+            <span id="tooltipRegion"></span>
+          </div>
+          <div class="tooltip-row">
+            <span class="label">Latency</span>
+            <span id="tooltipLatency"></span>
+          </div>
+          <div class="tooltip-row">
+            <span class="label">Status</span>
+            <span id="tooltipStatusText"></span>
+          </div>
+          <div class="tooltip-status">
+            <span class="tooltip-status-dot" id="tooltipStatusDot"></span>
+            <span id="tooltipStatusLabel"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
+  <script>
+    // --- Resolver dataset (lat/lon approximate) ---
+    const resolvers = [
+      // Google Public DNS
+      { id: 1, name: "Google DNS – US East", provider: "Google", ip: "8.8.8.8", region: "Ashburn, US", lat: 39.0, lon: -77.5 },
+      { id: 2, name: "Google DNS – US West", provider: "Google", ip: "8.8.4.4", region: "Los Angeles, US", lat: 34.0, lon: -118.2 },
+      { id: 3, name: "Google DNS – Europe", provider: "Google", ip: "8.8.8.8", region: "Frankfurt, DE", lat: 50.1, lon: 8.6 },
+      { id: 4, name: "Google DNS – Asia", provider: "Google", ip: "8.8.4.4", region: "Singapore", lat: 1.3, lon: 103.8 },
+      { id: 5, name: "Google DNS – South America", provider: "Google", ip: "8.8.8.8", region: "São Paulo, BR", lat: -23.5, lon: -46.6 },
+
+      // Cloudflare
+      { id: 6, name: "Cloudflare – US East", provider: "Cloudflare (1.1.1.1)", ip: "1.1.1.1", region: "New York, US", lat: 40.7, lon: -74.0 },
+      { id: 7, name: "Cloudflare – US Central", provider: "Cloudflare (1.1.1.1)", ip: "1.0.0.1", region: "Dallas, US", lat: 32.8, lon: -96.8 },
+      { id: 8, name: "Cloudflare – Europe", provider: "Cloudflare (1.1.1.1)", ip: "1.1.1.1", region: "London, UK", lat: 51.5, lon: -0.1 },
+      { id: 9, name: "Cloudflare – Asia", provider: "Cloudflare (1.1.1.1)", ip: "1.0.0.1", region: "Tokyo, JP", lat: 35.7, lon: 139.7 },
+      { id: 10, name: "Cloudflare – Oceania", provider: "Cloudflare (1.1.1.1)", ip: "1.1.1.1", region: "Sydney, AU", lat: -33.9, lon: 151.2 },
+
+      // Quad9
+      { id: 11, name: "Quad9 – North America", provider: "Quad9 (9.9.9.9)", ip: "9.9.9.9", region: "Atlanta, US", lat: 33.7, lon: -84.4 },
+      { id: 12, name: "Quad9 – Europe", provider: "Quad9 (9.9.9.9)", ip: "9.9.9.9", region: "Zurich, CH", lat: 47.4, lon: 8.5 },
+      { id: 13, name: "Quad9 – Asia", provider: "Quad9 (9.9.9.9)", ip: "9.9.9.9", region: "Singapore", lat: 1.3, lon: 103.8 },
+
+      // OpenDNS
+      { id: 14, name: "OpenDNS – US West", provider: "Cisco OpenDNS", ip: "208.67.222.222", region: "San Jose, US", lat: 37.3, lon: -121.9 },
+      { id: 15, name: "OpenDNS – US East", provider: "Cisco OpenDNS", ip: "208.67.220.220", region: "Virginia, US", lat: 38.0, lon: -78.5 },
+      { id: 16, name: "OpenDNS – Europe", provider: "Cisco OpenDNS", ip: "208.67.222.222", region: "Amsterdam, NL", lat: 52.4, lon: 4.9 },
+
+      // CleanBrowsing
+      { id: 17, name: "CleanBrowsing – Family", provider: "CleanBrowsing", ip: "185.228.168.168", region: "US East", lat: 39.0, lon: -77.0 },
+      { id: 18, name: "CleanBrowsing – Adult", provider: "CleanBrowsing", ip: "185.228.168.10", region: "US West", lat: 34.0, lon: -118.2 },
+
+      // AdGuard
+      { id: 19, name: "AdGuard – Europe", provider: "AdGuard DNS", ip: "94.140.14.14", region: "Frankfurt, DE", lat: 50.1, lon: 8.6 },
+      { id: 20, name: "AdGuard – Asia", provider: "AdGuard DNS", ip: "94.140.14.14", region: "Singapore", lat: 1.3, lon: 103.8 },
+
+      // Cloud resolvers / ISP-like
+      { id: 21, name: "Level 3 – US", provider: "Lumen / Level 3", ip: "4.2.2.1", region: "Chicago, US", lat: 41.9, lon: -87.6 },
+      { id: 22, name: "Comcast – US", provider: "Comcast", ip: "75.75.75.75", region: "Philadelphia, US", lat: 39.9, lon: -75.2 },
+      { id: 23, name: "Verizon – US", provider: "Verizon", ip: "4.2.2.2", region: "New York, US", lat: 40.7, lon: -74.0 },
+
+      // Regional resolvers
+      { id: 24, name: "APNIC – Asia", provider: "APNIC", ip: "1.1.1.1", region: "Hong Kong", lat: 22.3, lon: 114.2 },
+      { id: 25, name: "NKN – Asia", provider: "NKN", ip: "114.114.114.114", region: "Shanghai, CN", lat: 31.2, lon: 121.5 },
+      { id: 26, name: "DNSPod – Asia", provider: "DNSPod", ip: "119.29.29.29", region: "Shenzhen, CN", lat: 22.5, lon: 114.1 },
+
+      // Africa / Middle East
+      { id: 27, name: "Cloudflare – Africa", provider: "Cloudflare (1.1.1.1)", ip: "1.1.1.1", region: "Johannesburg, ZA", lat: -26.2, lon: 28.0 },
+      { id: 28, name: "Google DNS – Africa", provider: "Google", ip: "8.8.8.8", region: "Johannesburg, ZA", lat: -26.2, lon: 28.0 },
+      { id: 29, name: "Local IX – Middle East", provider: "Regional IX", ip: "185.51.200.2", region: "Dubai, AE", lat: 25.2, lon: 55.3 },
+
+      // Latin America
+      { id: 30, name: "Cloudflare – LATAM", provider: "Cloudflare (1.1.1.1)", ip: "1.1.1.1", region: "Buenos Aires, AR", lat: -34.6, lon: -58.4 },
+      { id: 31, name: "Google DNS – LATAM", provider: "Google", ip: "8.8.4.4", region: "Mexico City, MX", lat: 19.4, lon: -99.1 },
+
+      // Extra vantage points
+      { id: 32, name: "Edge PoP – Nordics", provider: "Edge PoP", ip: "203.0.113.10", region: "Stockholm, SE", lat: 59.3, lon: 18.1 },
+      { id: 33, name: "Edge PoP – Iberia", provider: "Edge PoP", ip: "203.0.113.11", region: "Madrid, ES", lat: 40.4, lon: -3.7 },
+      { id: 34, name: "Edge PoP – Balkans", provider: "Edge PoP", ip: "203.0.113.12", region: "Athens, GR", lat: 37.9, lon: 23.7 },
+      { id: 35, name: "Edge PoP – India", provider: "Edge PoP", ip: "203.0.113.13", region: "Mumbai, IN", lat: 19.1, lon: 72.9 },
+      { id: 36, name: "Edge PoP – Korea", provider: "Edge PoP", ip: "203.0.113.14", region: "Seoul, KR", lat: 37.6, lon: 127.0 },
+      { id: 37, name: "Edge PoP – Canada", provider: "Edge PoP", ip: "203.0.113.15", region: "Toronto, CA", lat: 43.7, lon: -79.4 },
+      { id: 38, name: "Edge PoP – Pacific NW", provider: "Edge PoP", ip: "203.0.113.16", region: "Seattle, US", lat: 47.6, lon: -122.3 },
+      { id: 39, name: "Edge PoP – US South", provider: "Edge PoP", ip: "203.0.113.17", region: "Miami, US", lat: 25.8, lon: -80.2 },
+      { id: 40, name: "Edge PoP – Central Europe", provider: "Edge PoP", ip: "203.0.113.18", region: "Prague, CZ", lat: 50.1, lon: 14.4 }
+    ];
+
+    // Synthetic state
+    let results = {};
+    let pulses = [];
+    let ambientMode = true;
+    let lastRun = null;
+    let sortState = { key: "latency", dir: "asc" };
+
+    // Canvas setup
+    const canvas = document.getElementById("mapCanvas");
+    const ctx = canvas.getContext("2d");
+    let width = 0;
+    let height = 0;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      width = rect.width;
+      height = rect.height;
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // Simple equirectangular projection
+    function project(lat, lon) {
+      const x = ((lon + 180) / 360) * width;
+      const y = ((90 - lat) / 180) * height;
+      return { x, y };
+    }
+
+    // Synthetic latency + status
+    function generateLatency() {
+      // 70% fast, 20% slow, 10% down
+      const r = Math.random();
+      if (r < 0.7) {
+        return { latency: 25 + Math.random() * 90, status: "up" };
+      } else if (r < 0.9) {
+        return { latency: 120 + Math.random() * 180, status: "slow" };
+      } else {
+        return { latency: null, status: "down" };
+      }
+    }
+
+    function statusColor(status) {
+      if (status === "up") return "#48bb78";
+      if (status === "slow") return "#ecc94b";
+      return "#f56565";
+    }
+
+    function statusLabel(status) {
+      if (status === "up") return "Fast";
+      if (status === "slow") return "Slow";
+      return "Stale / timeout";
+    }
+
+    // Pulses
+    function addPulse(resolver, strength = 1, delay = 0) {
+      const center = { lat: 40.0, lon: -77.0 }; // approximate US East vantage
+      const start = project(center.lat, center.lon);
+      const end = project(resolver.lat, resolver.lon);
+      pulses.push({
+        resolverId: resolver.id,
+        start,
+        end,
+        progress: 0,
+        strength,
+        delay,
+        createdAt: performance.now()
+      });
+    }
+
+    // Animation loop
+    function drawBackground() {
+      // Subtle hemisphere arcs
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      ctx.lineWidth = 1;
+
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(width, height) * 0.45;
+
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * (0.4 + i * 0.15), Math.PI * 0.15, Math.PI * 0.85);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawResolvers() {
+      resolvers.forEach((r) => {
+        const { x, y } = project(r.lat, r.lon);
+        const res = results[r.id];
+        const status = res ? res.status : "idle";
+        let color = "rgba(148, 163, 184, 0.9)";
+        let glow = "rgba(148, 163, 184, 0.5)";
+        let radius = 4;
+
+        if (status === "up") {
+          color = "#48bb78";
+          glow = "rgba(72, 187, 120, 0.9)";
+          radius = 5;
+        } else if (status === "slow") {
+          color = "#ecc94b";
+          glow = "rgba(236, 201, 75, 0.9)";
+          radius = 5;
+        } else if (status === "down") {
+          color = "#fc8181";
+          glow = "rgba(252, 129, 129, 0.9)";
+          radius = 5;
+        }
+
+        // Glow
+        ctx.save();
+        ctx.beginPath();
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 3);
+        gradient.addColorStop(0, glow);
+        gradient.addColorStop(1, "rgba(15, 23, 42, 0)");
+        ctx.fillStyle = gradient;
+        ctx.globalAlpha = 0.7;
+        ctx.fill();
+        ctx.restore();
+
+        // Core dot
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.9)";
+        ctx.lineWidth = 1.5;
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+    }
+
+    function drawPulses(timestamp) {
+      const now = timestamp || performance.now();
+      const speed = 0.0018; // progress per ms
+
+      pulses = pulses.filter((p) => {
+        const elapsed = now - p.createdAt;
+        if (elapsed < p.delay) return true;
+        const t = (elapsed - p.delay) * speed;
+        if (t > 1.1) return false;
+        p.progress = t;
+
+        const x = p.start.x + (p.end.x - p.start.x) * t;
+        const y = p.start.y + (p.end.y - p.start.y) * t;
+
+        const res = results[p.resolverId];
+        const status = res ? res.status : "up";
+        const color = statusColor(status);
+
+        // Path
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.35;
+        ctx.lineWidth = 1.2 * p.strength;
+        ctx.beginPath();
+        ctx.moveTo(p.start.x, p.start.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.restore();
+
+        // Head
+        ctx.save();
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.9;
+        ctx.arc(x, y, 3.5 * p.strength, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        return true;
+      });
+    }
+
+    function loop(timestamp) {
+      ctx.clearRect(0, 0, width, height);
+      drawBackground();
+      drawPulses(timestamp);
+      drawResolvers();
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+
+    // Tooltip
+    const tooltip = document.getElementById("tooltip");
+    const tooltipName = document.getElementById("tooltipName");
+    const tooltipProvider = document.getElementById("tooltipProvider");
+    const tooltipRegion = document.getElementById("tooltipRegion");
+    const tooltipLatency = document.getElementById("tooltipLatency");
+    const tooltipStatusText = document.getElementById("tooltipStatusText");
+    const tooltipStatusDot = document.getElementById("tooltipStatusDot");
+    const tooltipStatusLabel = document.getElementById("tooltipStatusLabel");
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      let closest = null;
+      let minDist = 18;
+
+      resolvers.forEach((r) => {
+        const p = project(r.lat, r.lon);
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = { resolver: r, x: p.x, y: p.y };
+        }
+      });
+
+      if (closest) {
+        const r = closest.resolver;
+        const res = results[r.id];
+        const latency = res && res.latency != null ? `${res.latency.toFixed(0)} ms` : "–";
+        const status = res ? res.status : "idle";
+
+        tooltipName.textContent = r.name;
+        tooltipProvider.textContent = r.provider;
+        tooltipRegion.textContent = r.region;
+        tooltipLatency.textContent = latency;
+        tooltipStatusText.textContent = status === "idle" ? "No check yet" : statusLabel(status);
+        tooltipStatusLabel.textContent = status === "idle" ? "Hover only" : statusLabel(status);
+        tooltipStatusDot.style.background = status === "idle" ? "#94a3b8" : statusColor(status);
+        tooltip.style.left = `${closest.x + rect.left}px`;
+        tooltip.style.top = `${closest.y + rect.top}px`;
+        tooltip.classList.add("visible");
+      } else {
+        tooltip.classList.remove("visible");
+      }
+    });
+
+    canvas.addEventListener("mouseleave", () => {
+      tooltip.classList.remove("visible");
+    });
+
+    // Table rendering
+    const tableBody = document.querySelector("#resolverTable tbody");
+    const metricResolvers = document.getElementById("metricResolvers");
+    const metricMedian = document.getElementById("metricMedian");
+    const metricPropagation = document.getElementById("metricPropagation");
+    const tableSummary = document.getElementById("tableSummary");
+    const metaLastRun = document.getElementById("metaLastRun");
+
+    function computeMedianLatency() {
+      const vals = Object.values(results)
+        .map((r) => r.latency)
+        .filter((v) => v != null)
+        .sort((a, b) => a - b);
+      if (!vals.length) return null;
+      const mid = Math.floor(vals.length / 2);
+      if (vals.length % 2 === 0) {
+        return (vals[mid - 1] + vals[mid]) / 2;
+      }
+      return vals[mid];
+    }
+
+    function renderMetrics() {
+      metricResolvers.textContent = resolvers.length.toString();
+      const median = computeMedianLatency();
+      metricMedian.textContent = median != null ? `${median.toFixed(0)} ms` : "–";
+
+      const statuses = Object.values(results).map((r) => r.status);
+      if (!statuses.length) {
+        metricPropagation.textContent = "Idle";
+        tableSummary.textContent = "No checks run yet";
+        return;
+      }
+
+      const up = statuses.filter((s) => s === "up").length;
+      const slow = statuses.filter((s) => s === "slow").length;
+      const down = statuses.filter((s) => s === "down").length;
+
+      if (down > 0) {
+        metricPropagation.textContent = "Partial / stale";
+      } else if (slow > 0) {
+        metricPropagation.textContent = "Mixed latency";
+      } else {
+        metricPropagation.textContent = "Healthy";
+      }
+
+      tableSummary.textContent = `${up} fast · ${slow} slow · ${down} stale`;
+    }
+
+    function renderTable() {
+      const rows = resolvers.map((r) => {
+        const res = results[r.id] || { latency: null, status: "idle" };
+        return {
+          ...r,
+          latency: res.latency,
+          status: res.status
+        };
+      });
+
+      rows.sort((a, b) => {
+        const key = sortState.key;
+        const dir = sortState.dir === "asc" ? 1 : -1;
+
+        if (key === "latency") {
+          const la = a.latency == null ? Infinity : a.latency;
+          const lb = b.latency == null ? Infinity : b.latency;
+          return (la - lb) * dir;
+        }
+
+        if (key === "status") {
+          const order = { up: 0, slow: 1, down: 2, idle: 3 };
+          return (order[a.status] - order[b.status]) * dir;
+        }
+
+        const va = (a[key] || "").toString().toLowerCase();
+        const vb = (b[key] || "").toString().toLowerCase();
+        if (va < vb) return -1 * dir;
+        if (va > vb) return 1 * dir;
+        return 0;
+      });
+
+      tableBody.innerHTML = "";
+      rows.forEach((r) => {
+        const tr = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.textContent = r.name;
+        tr.appendChild(tdName);
+
+        const tdProvider = document.createElement("td");
+        tdProvider.textContent = r.provider;
+        tr.appendChild(tdProvider);
+
+        const tdRegion = document.createElement("td");
+        tdRegion.textContent = r.region;
+        tr.appendChild(tdRegion);
+
+        const tdLatency = document.createElement("td");
+        tdLatency.textContent = r.latency != null ? `${r.latency.toFixed(0)} ms` : "–";
+        tr.appendChild(tdLatency);
+
+        const tdStatus = document.createElement("td");
+        const pill = document.createElement("span");
+        pill.classList.add("status-pill");
+        const dot = document.createElement("span");
+        dot.classList.add("dot");
+        pill.appendChild(dot);
+
+        if (r.status === "up") {
+          pill.classList.add("status-up");
+          pill.appendChild(document.createTextNode("Fast"));
+        } else if (r.status === "slow") {
+          pill.classList.add("status-slow");
+          pill.appendChild(document.createTextNode("Slow"));
+        } else if (r.status === "down") {
+          pill.classList.add("status-down");
+          pill.appendChild(document.createTextNode("Stale"));
+        } else {
+          pill.classList.add("status-up");
+          pill.style.opacity = "0.4";
+          pill.appendChild(document.createTextNode("Idle"));
+        }
+
+        tdStatus.appendChild(pill);
+        tr.appendChild(tdStatus);
+
+        tableBody.appendChild(tr);
+      });
+
+      renderMetrics();
+    }
+
+    // Sorting handlers
+    document.querySelectorAll("#resolverTable thead th").forEach((th) => {
+      th.addEventListener("click", () => {
+        const key = th.getAttribute("data-sort");
+        if (!key) return;
+        if (sortState.key === key) {
+          sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+        } else {
+          sortState.key = key;
+          sortState.dir = "asc";
+        }
+        renderTable();
+      });
+    });
+
+    // Run propagation check (synthetic)
+    function runCheck() {
+      results = {};
+      pulses = [];
+      const now = new Date();
+      lastRun = now;
+      metaLastRun.textContent = `Last run: ${now.toLocaleTimeString()}`;
+
+      resolvers.forEach((r, idx) => {
+        const { latency, status } = generateLatency();
+        results[r.id] = { latency, status };
+        const delay = 80 * idx + Math.random() * 120;
+        addPulse(r, 1.2, delay);
+      });
+
+      renderTable();
+    }
+
+    // Ambient pulses
+    function toggleAmbient() {
+      ambientMode = !ambientMode;
+      if (ambientMode) {
+        scheduleAmbient();
+      }
+    }
+
+    function scheduleAmbient() {
+      if (!ambientMode) return;
+      const r = resolvers[Math.floor(Math.random() * resolvers.length)];
+      addPulse(r, 0.7, 0);
+      setTimeout(scheduleAmbient, 600 + Math.random() * 900);
+    }
+
+    scheduleAmbient();
+
+    // Reset
+    function resetView() {
+      results = {};
+      pulses = [];
+      lastRun = null;
+      metaLastRun.textContent = "Last run: –";
+      renderTable();
+    }
+
+    // Buttons
+    document.getElementById("btnRun").addEventListener("click", runCheck);
+    document.getElementById("btnPulse").addEventListener("click", toggleAmbient);
+    document.getElementById("btnReset").addEventListener("click", resetView);
+
+    // Initial render
+    renderTable();
+  </script>
 </body>
 </html>
